@@ -15,7 +15,7 @@ pipeline{
             steps{
                 script {
                     dir("terraform"){
-                        git branch: 'terraform',url:'https://github.com/ManojKRISHNAPPA/reimagined-journey.git'
+                        git branch: 'Project-2',url:'https://github.com/yashb1117/terraform.git'
                     }
                 }
             }
