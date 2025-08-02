@@ -1,0 +1,62 @@
+pipeline{
+    parameters{
+        choice(name: 'terraformAction',choices: ['apply','destroy'],description: 'Choose your terraform action to perform')
+    }
+
+    environment {
+        AWS_ACCESS_KEY_ID = credentials('AWS_ACCESS_KEY_ID')
+        AWS_SECRET_ACCESS_KEY = credentials('AWS_SECRET_ACCESS_KEY')
+    }
+
+    agent any
+
+    stages{
+        stage('checkout'){
+            steps{
+                script {
+                    dir("terraform"){
+                        git branch: 'terraform',url:'https://github.com/ManojKRISHNAPPA/reimagined-journey.git'
+                    }
+                }
+            }
+        }
+    }
+
+    stage('Plan'){
+        steps{
+            sh 'pwd;cd project-1/; terraform init'
+            sh 'pwd;cd project-1/; terraform plan -out tfplan'
+            sh 'pwd;cd project-1/; terraform show -no-color tfplan >> tfplan.txt'
+        }
+    }
+
+    stage('approval'){
+        steps{
+            script {
+                def plan = readFile 'project-1/tfplan.txt'
+                input message: "Do you want to proced with terraform action..?"
+                parameters: [text(name:'plan',description: 'Can you review your code one more time',defaultValue: plan)]
+            }
+        }
+    }
+
+    stage('Apply or Destroy'){
+        when{
+            expression{
+                return params.terraformAction == 'apply' || params.terraformAction == 'destroy'
+            }
+        }
+
+        steps{
+            script{
+                if (params.terraformAction == 'apply'){
+                    sh "pwd;cd project-1/; terraform apply -input=false tfplan"
+                } else if(params.terraformAction == 'destroy'){
+                    sh "pwd;cd project-1/; terraform destroy -auto-approve"
+                }
+
+            }
+        }
+    }
+
+}
