@@ -38,9 +38,9 @@ gateway_id=aws_internet_gateway.IGW.id
 }
 
 # Subnet Route Table Association
-resource "aws_subnet_route_table_association" "YS1-RT1" {
+resource "aws_route_table_association" "YS1-RT1" {
+  subnet_id      = aws_subnet.YS1.id
   route_table_id = aws_route_table.RT1.id
-  subnet_id=aws_subnet.YS1.id
 }
 
 # EC2 Instance Configuration
