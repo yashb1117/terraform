@@ -1,6 +1,10 @@
-pipeline{
-    parameters{
-        choice(name: 'terraformAction',choices: ['apply','destroy'],description: 'Choose your terraform action to perform')
+pipeline {
+    parameters {
+        choice(
+            name: 'terraformAction',
+            choices: ['apply', 'destroy'],
+            description: 'Choose your terraform action to perform'
+        )
     }
 
     environment {
@@ -10,53 +14,50 @@ pipeline{
 
     agent any
 
-    stages{
-        stage('checkout'){
-            steps{
+    stages {
+        stage('Checkout') {
+            steps {
                 script {
-                    dir("terraform"){
-                        git branch: 'Project-2',url:'https://github.com/yashb1117/terraform.git'
+                    dir("terraform") {
+                        git branch: 'Project-2', url: 'https://github.com/yashb1117/terraform.git'
+                    }
+                }
+            }
+        }
+
+        stage('Plan') {
+            steps {
+                sh 'cd terraform/Terra2/ && terraform init'
+                sh 'cd terraform/Terra2/ && terraform plan -out=tfplan'
+                sh 'cd terraform/Terra2/ && terraform show -no-color tfplan > tfplan.txt'
+            }
+        }
+
+        stage('Approval') {
+            steps {
+                script {
+                    def plan = readFile 'terraform/Terra2/tfplan.txt'
+                    input message: 'Do you want to proceed with terraform action?',
+                    parameters: [text(name: 'plan', description: 'Please review your Terraform plan', defaultValue: plan)]
+                }
+            }
+        }
+
+        stage('Apply or Destroy') {
+            when {
+                expression {
+                    return params.terraformAction == 'apply' || params.terraformAction == 'destroy'
+                }
+            }
+            steps {
+                script {
+                    if (params.terraformAction == 'apply') {
+                        sh 'cd terraform/Terra2/ && terraform apply -input=false tfplan'
+                    } else if (params.terraformAction == 'destroy') {
+                        sh 'cd terraform/Terra2/ && terraform destroy -auto-approve'
                     }
                 }
             }
         }
     }
-
-    stage('Plan'){
-        steps{
-            sh 'pwd;cd Terra2/; terraform init'
-            sh 'pwd;cd Terra2/; terraform plan -out tfplan'
-            sh 'pwd;cd Terra2/; terraform show -no-color tfplan >> tfplan.txt'
-        }
-    }
-
-    stage('approval'){
-        steps{
-            script {
-                def plan = readFile 'project-1/tfplan.txt'
-                input message: "Do you want to proced with terraform action..?"
-                parameters: [text(name:'plan',description: 'Can you review your code one more time',defaultValue: plan)]
-            }
-        }
-    }
-
-    stage('Apply or Destroy'){
-        when{
-            expression{
-                return params.terraformAction == 'apply' || params.terraformAction == 'destroy'
-            }
-        }
-
-        steps{
-            script{
-                if (params.terraformAction == 'apply'){
-                    sh "pwd;cd project-1/; terraform apply -input=false tfplan"
-                } else if(params.terraformAction == 'destroy'){
-                    sh "pwd;cd Terra2/; terraform destroy -auto-approve"
-                }
-
-            }
-        }
-    }
-
 }
