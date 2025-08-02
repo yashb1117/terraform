@@ -50,7 +50,8 @@ resource "aws_instance" "TF2EC2" {
   key_name= "git"
   subnet_id =aws_subnet.YS1.id
   availability_zone = "us-east-1a"
-  security_groups = "New same vpc"
+  security_groups = ["New same vpc"]
+
 root_block_device {
     volume_size = 30
     volume_type = "gp2"
