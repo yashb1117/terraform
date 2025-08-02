@@ -24,9 +24,9 @@ pipeline{
 
     stage('Plan'){
         steps{
-            sh 'pwd;cd project-1/; terraform init'
-            sh 'pwd;cd project-1/; terraform plan -out tfplan'
-            sh 'pwd;cd project-1/; terraform show -no-color tfplan >> tfplan.txt'
+            sh 'pwd;cd Terra2/; terraform init'
+            sh 'pwd;cd Terra2/; terraform plan -out tfplan'
+            sh 'pwd;cd Terra2/; terraform show -no-color tfplan >> tfplan.txt'
         }
     }
 
@@ -52,7 +52,7 @@ pipeline{
                 if (params.terraformAction == 'apply'){
                     sh "pwd;cd project-1/; terraform apply -input=false tfplan"
                 } else if(params.terraformAction == 'destroy'){
-                    sh "pwd;cd project-1/; terraform destroy -auto-approve"
+                    sh "pwd;cd Terra2/; terraform destroy -auto-approve"
                 }
 
             }
